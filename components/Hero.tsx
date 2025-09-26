@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import InterfaceImagen from '../asset/image/interface.png';
 
 const Hero: React.FC<{ onBookDemoClick: () => void }> = ({ onBookDemoClick }) => {
   return (
@@ -43,7 +44,7 @@ const Hero: React.FC<{ onBookDemoClick: () => void }> = ({ onBookDemoClick }) =>
             Watch Demo
           </button>
         </motion.div>
-        
+
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
@@ -51,7 +52,7 @@ const Hero: React.FC<{ onBookDemoClick: () => void }> = ({ onBookDemoClick }) =>
           className="mt-16"
         >
           <img
-            src="https://i.imgur.com/g055z58.png"
+            src={InterfaceImagen}
             alt="XionChatbotAI SaaS Mockup"
             className="rounded-2xl w-full max-w-4xl mx-auto shadow-2xl shadow-[#f028fe]/20"
           />

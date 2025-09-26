@@ -1,20 +1,65 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# 🤖 XionChatbots AI – SaaS Landing Page
 
-# Run and deploy your AI Studio app
+## 📌 Descripción
 
-This contains everything you need to run your app locally.
+XionChatbots AI es una landing page moderna y optimizada para un SaaS de chatbots impulsados por inteligencia artificial.
+Desarrollada con React + TypeScript + TailwindCSS y creada con apoyo de Google AI Studio, esta web está enfocada en mostrar las características, planes de precios, testimonios y FAQ de un producto SaaS de manera clara y atractiva.
 
-View your app in AI Studio: https://ai.studio/apps/drive/1c4MFAUNuQIu3IbYObuLlcsyqk5UgnisW
+## 🚀 Características
 
-## Run Locally
+🎨 UI moderna y minimalista estilo SaaS con dark theme.
 
-**Prerequisites:**  Node.js
+⚡ React + TypeScript para escalabilidad y robustez.
+
+📱 Responsive design (desktop, tablet y móvil).
+
+🛠 TailwindCSS para personalización rápida y eficiente.
+
+🧩 Secciones listas para SaaS:
+
+Hero con CTA
+
+Features
+
+Pricing Plans
+
+Testimonials
+
+FAQ
+
+Footer con enlaces legales y sociales
+
+## 🛠 Tecnologías
+
+React
+
+TypeScript
+
+TailwindCSS
+
+Google AI Studio
+
+## 📂 Instalación
+
+Clona este repositorio e instala las dependencias:
+
+git clone https://github.com/YoshuaSoto95/SaaS-Chatbot-Landing-Page-XionChatbotAI.git
+cd xionchatbots-landing
+npm install
 
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+# Ejecuta el proyecto en local:
+
+npm run dev
+
+🔗 Ver Proyecto en Vivo : https://xionchatbotai.netlify.app/
+
+# 📷 Capturas
+
+![XionChatBots IA](banner.png)
+
+
+## 👨‍💻 Autor
+[Dann Kloppering]
+- GitHub: [Dann Kloppering](https://github.com/YoshuaSoto95?tab=repositories)
+- LinkTree: [Dann Kloppering](https://dannkloppering-linktree.netlify.app/)

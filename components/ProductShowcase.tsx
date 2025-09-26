@@ -1,13 +1,14 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import CheckIcon from './icons/CheckIcon';
+import ProductImagen from '../asset/image/product.png';
 
 const features = [
-    '24/7 Automated Customer Support',
-    'Seamless CRM Integration',
-    'Advanced Conversation Analytics',
-    'Customizable Chatbot Personality',
-    'Multi-language Support',
+  '24/7 Automated Customer Support',
+  'Seamless CRM Integration',
+  'Advanced Conversation Analytics',
+  'Customizable Chatbot Personality',
+  'Multi-language Support',
 ];
 
 const ProductShowcase: React.FC = () => {
@@ -22,7 +23,7 @@ const ProductShowcase: React.FC = () => {
             transition={{ duration: 0.8 }}
           >
             <motion.img
-              src="https://i.imgur.com/g055z58.png"
+              src={ProductImagen}
               alt="SaaS Platform Dashboard"
               className="rounded-xl shadow-2xl shadow-[#ba0bc6]/30 w-full mx-auto"
               animate={{ y: [-10, 10] }}
@@ -49,8 +50,8 @@ const ProductShowcase: React.FC = () => {
             </p>
             <ul className="mt-8 space-y-4">
               {features.map((feature, index) => (
-                <motion.li 
-                  key={index} 
+                <motion.li
+                  key={index}
                   className="flex items-start"
                   initial={{ opacity: 0, x: 20 }}
                   whileInView={{ opacity: 1, x: 0 }}
