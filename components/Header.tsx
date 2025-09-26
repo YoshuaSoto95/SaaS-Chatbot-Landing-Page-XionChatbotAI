@@ -1,139 +1,90 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence, Variants } from 'framer-motion';
 import MenuIcon from './icons/MenuIcon';
 import XIcon from './icons/XIcon';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const NavLink: React.FC<{ href: string; children: React.ReactNode; onClick?: () => void }> = ({ href, children, onClick }) => (
-  <li>
-    <a
-      href={href}
-      onClick={onClick}
-      className="text-white hover:text-[#f562ff] transition-colors duration-300 text-lg md:text-base"
-    >
-      {children}
-    </a>
-  </li>
-);
+const navLinks = [
+  { name: 'Features', href: '#features' },
+  { name: 'Testimonials', href: '#testimonials' },
+  { name: 'Pricing', href: '#pricing' },
+  { name: 'FAQ', href: '#faq' },
+];
 
-const Header: React.FC = () => {
+const Header: React.FC<{ onBookDemoClick: () => void }> = ({ onBookDemoClick }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
+    // This is a simple implementation. In a real app with the scroll container,
+    // you would get the container ref and add the event listener to it.
+    const container = document.querySelector('.h-screen.overflow-y-scroll');
+    const handleScroll = (e: Event) => {
+        if (e.target) {
+            setIsScrolled((e.target as HTMLElement).scrollTop > 10);
+        }
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    
+    container?.addEventListener('scroll', handleScroll);
+    return () => container?.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navItems = [
-    { name: 'Features', href: '#' },
-    { name: 'Pricing', href: '#' },
-    { name: 'Resources', href: '#' },
-    { name: 'Contact', href: '#' },
-  ];
-  
-  // FIX: Explicitly type menuVariants with Variants to resolve TypeScript error with easing property.
-  const menuVariants: Variants = {
-    closed: {
-      opacity: 0,
-      y: -20,
-      height: 0,
-      transition: {
-        duration: 0.3,
-        ease: "easeInOut"
-      }
-    },
-    open: {
-      opacity: 1,
-      y: 0,
-      height: "auto",
-      transition: {
-        duration: 0.4,
-        ease: "easeInOut"
-      }
-    }
-  };
+  const toggleMenu = () => setIsOpen(!isOpen);
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled || isOpen ? 'bg-black/50 backdrop-blur-lg shadow-lg shadow-[#ba0bc6]/10' : 'bg-transparent'
-      }`}
-    >
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled || isOpen ? 'bg-black/80 backdrop-blur-sm' : 'bg-transparent'}`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          
           <div className="flex-shrink-0">
             <a href="#" className="text-2xl font-bold text-white tracking-wider">
               XionChatbot<span className="text-[#f028fe]">AI</span>
             </a>
           </div>
-
-          <div className="hidden md:flex justify-center flex-1">
-            <ul className="flex items-baseline space-x-8">
-              {navItems.map((item) => (
-                <NavLink key={item.name} href={item.href}>
-                  {item.name}
-                </NavLink>
-              ))}
-            </ul>
-          </div>
-
+          <nav className="hidden md:flex md:items-center md:space-x-8">
+            {navLinks.map((link) => (
+              <a key={link.name} href={link.href} className="text-gray-300 hover:text-white transition-colors duration-300">
+                {link.name}
+              </a>
+            ))}
+          </nav>
           <div className="hidden md:block">
-            <a
-              href="#"
-              className="px-6 py-3 rounded-md text-sm font-medium text-white bg-gradient-to-r from-[#aa0494] via-[#ba0bc6] to-[#f028fe] hover:shadow-lg hover:shadow-[#f028fe]/50 transition-all duration-300"
-            >
-              Start Free Trial
-            </a>
-          </div>
-
-          <div className="-mr-2 flex md:hidden">
             <button
-              onClick={() => setIsOpen(!isOpen)}
-              type="button"
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-200 hover:text-white hover:bg-gray-800/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black focus:ring-white"
-              aria-controls="mobile-menu"
-              aria-expanded={isOpen}
+              onClick={onBookDemoClick}
+              className="px-6 py-2 bg-gradient-to-r from-[#f028fe] to-[#ba0bc6] text-white font-semibold rounded-lg shadow-lg hover:shadow-[#f028fe]/50 transition-all duration-300 transform hover:scale-105"
             >
-              <span className="sr-only">Open main menu</span>
+              Book a Demo
+            </button>
+          </div>
+          <div className="md:hidden">
+            <button onClick={toggleMenu} className="text-white">
               {isOpen ? <XIcon className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
             </button>
           </div>
         </div>
-      </nav>
-
+      </div>
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="md:hidden overflow-hidden"
-            id="mobile-menu"
-            initial="closed"
-            animate="open"
-            exit="closed"
-            variants={menuVariants}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden bg-black/80 backdrop-blur-sm"
           >
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-              <ul className="flex flex-col items-center space-y-4">
-                {navItems.map((item) => (
-                  <NavLink key={item.name} href={item.href} onClick={() => setIsOpen(false)}>
-                    {item.name}
-                  </NavLink>
-                ))}
-              </ul>
-            </div>
-            <div className="pt-4 pb-6 px-5">
-              <a
-                href="#"
-                className="block text-center w-full px-6 py-3 rounded-md font-medium text-white bg-gradient-to-r from-[#aa0494] via-[#ba0bc6] to-[#f028fe]"
+            <nav className="px-4 pt-2 pb-4 space-y-2 text-center">
+              {navLinks.map((link) => (
+                <a key={link.name} href={link.href} onClick={toggleMenu} className="block py-2 text-gray-300 hover:text-white transition-colors duration-300">
+                  {link.name}
+                </a>
+              ))}
+              <button
+                onClick={() => {
+                  onBookDemoClick();
+                  toggleMenu();
+                }}
+                className="w-full mt-4 px-6 py-3 bg-gradient-to-r from-[#f028fe] to-[#ba0bc6] text-white font-semibold rounded-lg shadow-lg hover:shadow-[#f028fe]/50 transition-all duration-300"
               >
-                Start Free Trial
-              </a>
-            </div>
+                Book a Demo
+              </button>
+            </nav>
           </motion.div>
         )}
       </AnimatePresence>
