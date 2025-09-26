@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GoogleGenAI, Type } from "@google/genai";
 import XIcon from './icons/XIcon';
 
 interface PreQualModalProps {
@@ -12,21 +11,27 @@ interface PreQualModalProps {
 
 const PreQualModal: React.FC<PreQualModalProps> = ({ isOpen, onClose, onQualified, initialPlan }) => {
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
+    phone: '',
     company: '',
-    role: '',
-    goal: '',
     plan: initialPlan || 'Not Specified',
   });
   const [formErrors, setFormErrors] = useState<{ email?: string }>({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Reset form when modal is opened
     if (isOpen) {
-      setFormData((prev) => ({ ...prev, plan: initialPlan || 'Not Specified' }));
-      setFormErrors({}); // Reset errors when modal opens
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        company: '',
+        plan: initialPlan || 'Not Specified',
+      });
+      setFormErrors({});
     }
   }, [initialPlan, isOpen]);
   
@@ -41,11 +46,11 @@ const PreQualModal: React.FC<PreQualModalProps> = ({ isOpen, onClose, onQualifie
     }
     
     setFormErrors(errors);
+    // The HTML5 `required` attribute will handle other empty fields
     return Object.keys(errors).length === 0;
   };
 
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (name === 'email' && formErrors.email) {
@@ -53,89 +58,11 @@ const PreQualModal: React.FC<PreQualModalProps> = ({ isOpen, onClose, onQualifie
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) {
-        return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    // FIX: Ensure API key is available before making a call.
-    if (!process.env.REACT_APP_API_KEY) {
-        setError("Configuration error: API Key is missing. Please contact support.");
-        setIsLoading(false);
-        console.error("API_KEY environment variable not set!");
-        return;
-    }
-
-    try {
-      // FIX: Use new GoogleGenAI({apiKey: ...}) for initialization.
-      const ai = new GoogleGenAI({ apiKey: process.env.REACT_APP_API_KEY });
-      const prompt = `
-        As a Sales Development Representative for XionChatbotAI, a company that sells AI chatbot solutions,
-        your task is to pre-qualify a new lead.
-        
-        Analyze the following lead information:
-        - Name: ${formData.name}
-        - Email: ${formData.email}
-        - Company: ${formData.company}
-        - Role: ${formData.role}
-        - Primary Goal: ${formData.goal}
-        - Interested Plan: ${formData.plan}
-
-        A good lead is typically from a tech, e-commerce, or customer service-focused company.
-        They are usually in decision-making roles (e.g., Manager, Director, CEO, Founder).
-        Their goals should align with what a chatbot can solve (e.g., "improve customer support", "generate more leads", "reduce support costs").
-        Someone interested in the 'Enterprise' or 'Pro' plan is generally a higher quality lead.
-        
-        A bad lead might be a student, someone looking for a job, or someone with goals unrelated to chatbots (e.g., "learn to code").
-
-        Based on your analysis, determine if this lead is qualified for a product demo.
-        Provide your response in JSON format.
-      `;
-
-      // FIX: Use ai.models.generateContent to generate content.
-      const response = await ai.models.generateContent({
-        // FIX: Use gemini-2.5-flash model.
-        model: "gemini-2.5-flash",
-        contents: prompt,
-        config: {
-          // FIX: Set responseMimeType to application/json for JSON output.
-          responseMimeType: "application/json",
-          // FIX: Define a responseSchema for the expected JSON structure.
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              isQualified: {
-                type: Type.BOOLEAN,
-                description: 'Whether the lead is qualified for a demo.',
-              },
-              reason: {
-                type: Type.STRING,
-                description: 'A brief explanation for the qualification decision.',
-              },
-            },
-            required: ["isQualified", "reason"],
-          },
-        },
-      });
-
-      // FIX: Use response.text to get the generated text.
-      const resultText = response.text.trim();
-      const result = JSON.parse(resultText);
-
-      if (result.isQualified) {
-        onQualified();
-      } else {
-        setError(`Thank you for your interest. At this time, it seems we may not be the best fit. Reason: ${result.reason}`);
-      }
-    } catch (apiError) {
-      console.error("API Error:", apiError);
-      setError("Sorry, we couldn't process your request at this time. Please try again later.");
-    } finally {
-      setIsLoading(false);
+    // After validation passes, directly call onQualified to show the Thank You modal.
+    if (validate()) {
+      onQualified();
     }
   };
   
@@ -155,52 +82,48 @@ const PreQualModal: React.FC<PreQualModalProps> = ({ isOpen, onClose, onQualifie
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.9, y: 20, opacity: 0 }}
           transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-          className="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-lg p-8 relative shadow-2xl shadow-black"
+          className="bg-gray-900/80 backdrop-blur-md border border-[#f028fe]/50 rounded-2xl w-full max-w-lg p-8 relative shadow-2xl shadow-[#f028fe]/20"
           onClick={(e) => e.stopPropagation()}
         >
           <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
             <XIcon className="h-6 w-6" />
           </button>
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-white">Book a Demo</h2>
+            <h2 className="text-2xl font-bold text-white">Get Started</h2>
             <p className="mt-2 text-gray-400">
-              Tell us a bit about yourself, and our AI will see if you're a good fit for a demo.
+              Fill out the form below and we'll be in touch with the next steps.
             </p>
           </div>
           <form onSubmit={handleSubmit} className="mt-8 space-y-4">
-            <div>
-                <InputField name="name" placeholder="Full Name" value={formData.name} onChange={handleChange} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <InputField name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleChange} />
+                <InputField name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleChange} />
             </div>
             <div>
                 <InputField name="email" type="email" placeholder="Work Email" value={formData.email} onChange={handleChange} hasError={!!formErrors.email} aria-describedby="email-error" />
                 {formErrors.email && <p id="email-error" className="mt-1 text-sm text-red-400">{formErrors.email}</p>}
             </div>
             <div>
-                <InputField name="company" placeholder="Company Name" value={formData.company} onChange={handleChange} />
+                 <InputField name="phone" type="tel" placeholder="Phone Number" value={formData.phone} onChange={handleChange} />
             </div>
             <div>
-                <InputField name="role" placeholder="Your Role (e.g., Marketing Manager)" value={formData.role} onChange={handleChange} />
+                <InputField name="company" placeholder="Company Name (Optional)" value={formData.company} onChange={handleChange} isOptional={true} />
             </div>
             <div>
                 <SelectField name="plan" value={formData.plan} onChange={handleChange}>
-                    <option value="Not Specified" disabled>Select a Plan...</option>
+                    <option value="Not Specified" disabled>Select an interested plan...</option>
                     <option value="Starter">Starter</option>
                     <option value="Pro">Pro</option>
                     <option value="Enterprise">Enterprise</option>
                 </SelectField>
             </div>
-            <div>
-                <TextAreaField name="goal" placeholder="What's your primary goal with a chatbot?" value={formData.goal} onChange={handleChange} />
-            </div>
             
             <button
               type="submit"
-              disabled={isLoading}
-              className="w-full py-3 mt-4 font-semibold text-white bg-gradient-to-r from-[#f028fe] to-[#ba0bc6] rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="w-full py-3 mt-4 font-semibold text-white bg-gradient-to-r from-[#f028fe] to-[#ba0bc6] rounded-lg hover:shadow-lg hover:shadow-[#f028fe]/50 transition-all"
             >
-              {isLoading ? 'Analyzing...' : 'Submit for Qualification'}
+              Submit
             </button>
-            {error && <p className="mt-4 text-center text-red-400">{error}</p>}
           </form>
         </motion.div>
       </motion.div>
@@ -208,10 +131,11 @@ const PreQualModal: React.FC<PreQualModalProps> = ({ isOpen, onClose, onQualifie
   );
 };
 
-const InputField: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { hasError?: boolean }> = ({ hasError, ...props }) => (
+const InputField: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { hasError?: boolean; isOptional?: boolean }> = ({ hasError, isOptional, ...props }) => (
   <input
     {...props}
-    required
+    required={!isOptional}
+    aria-invalid={hasError}
     className={`w-full px-4 py-3 bg-gray-800 border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all ${hasError ? 'border-red-500 focus:ring-red-500' : 'border-gray-700 focus:ring-[#f028fe]'}`}
   />
 );
@@ -220,19 +144,11 @@ const SelectField: React.FC<React.SelectHTMLAttributes<HTMLSelectElement> & { ha
     <select
       {...props}
       required
+      aria-invalid={hasError}
       className={`w-full px-4 py-3 bg-gray-800 border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all ${hasError ? 'border-red-500 focus:ring-red-500' : 'border-gray-700 focus:ring-[#f028fe]'}`}
     >
       {props.children}
     </select>
-);
-
-const TextAreaField: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement> & { hasError?: boolean }> = ({ hasError, ...props }) => (
-  <textarea
-    {...props}
-    required
-    rows={3}
-    className={`w-full px-4 py-3 bg-gray-800 border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all resize-none ${hasError ? 'border-red-500 focus:ring-red-500' : 'border-gray-700 focus:ring-[#f028fe]'}`}
-  />
 );
 
 export default PreQualModal;
