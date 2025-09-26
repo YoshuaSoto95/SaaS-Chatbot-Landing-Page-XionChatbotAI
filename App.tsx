@@ -15,11 +15,21 @@ import ScrollProgressBar from './components/ScrollProgressBar';
 function App() {
   const [isPreQualModalOpen, setIsPreQualModalOpen] = useState(false);
   const [isThankYouModalOpen, setIsThankYouModalOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const openPreQualModal = () => setIsPreQualModalOpen(true);
-  const closePreQualModal = () => setIsPreQualModalOpen(false);
+  const openPreQualModal = (planName: string | null = null) => {
+    setSelectedPlan(planName);
+    setIsPreQualModalOpen(true);
+  };
+  
+  const closePreQualModal = () => {
+      setIsPreQualModalOpen(false);
+      // Delay reset to avoid UI flicker during closing animation
+      setTimeout(() => setSelectedPlan(null), 300);
+  };
+
 
   const openThankYouModal = () => setIsThankYouModalOpen(true);
   const closeThankYouModal = () => setIsThankYouModalOpen(false);
@@ -31,20 +41,20 @@ function App() {
 
   return (
     <div className="bg-black text-white font-sans">
-      <Header onBookDemoClick={openPreQualModal} />
+      <Header onBookDemoClick={() => openPreQualModal()} />
       <div 
         ref={containerRef}
         className="h-screen overflow-y-scroll snap-y snap-mandatory scroll-smooth"
       >
         <ScrollProgressBar containerRef={containerRef} />
         <main>
-          <Hero onBookDemoClick={openPreQualModal} />
+          <Hero onBookDemoClick={() => openPreQualModal()} />
           <KeyBenefits />
           <ProductShowcase />
           <Testimonials />
-          <Pricing onBookDemoClick={openPreQualModal}/>
+          <Pricing onPlanSelect={openPreQualModal}/>
           <FAQ />
-          <CallToAction onBookDemoClick={openPreQualModal} />
+          <CallToAction onBookDemoClick={() => openPreQualModal()} />
           <Footer />
         </main>
       </div>
@@ -52,6 +62,7 @@ function App() {
         isOpen={isPreQualModalOpen}
         onClose={closePreQualModal}
         onQualified={handleQualified}
+        initialPlan={selectedPlan}
       />
       <ThankYouModal
         isOpen={isThankYouModalOpen}

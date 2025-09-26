@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GoogleGenAI, Type } from "@google/genai";
 import XIcon from './icons/XIcon';
@@ -7,26 +7,58 @@ interface PreQualModalProps {
   isOpen: boolean;
   onClose: () => void;
   onQualified: () => void;
+  initialPlan?: string | null;
 }
 
-const PreQualModal: React.FC<PreQualModalProps> = ({ isOpen, onClose, onQualified }) => {
+const PreQualModal: React.FC<PreQualModalProps> = ({ isOpen, onClose, onQualified, initialPlan }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     company: '',
     role: '',
     goal: '',
+    plan: initialPlan || 'Not Specified',
   });
+  const [formErrors, setFormErrors] = useState<{ email?: string }>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  useEffect(() => {
+    if (isOpen) {
+      setFormData((prev) => ({ ...prev, plan: initialPlan || 'Not Specified' }));
+      setFormErrors({}); // Reset errors when modal opens
+    }
+  }, [initialPlan, isOpen]);
+  
+  const validate = (): boolean => {
+    const errors: { email?: string } = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!formData.email) {
+        errors.email = 'Email is required.';
+    } else if (!emailRegex.test(formData.email)) {
+        errors.email = 'Please enter a valid email address.';
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === 'email' && formErrors.email) {
+        setFormErrors(prev => ({...prev, email: undefined}));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) {
+        return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -47,13 +79,16 @@ const PreQualModal: React.FC<PreQualModalProps> = ({ isOpen, onClose, onQualifie
         
         Analyze the following lead information:
         - Name: ${formData.name}
+        - Email: ${formData.email}
         - Company: ${formData.company}
         - Role: ${formData.role}
         - Primary Goal: ${formData.goal}
+        - Interested Plan: ${formData.plan}
 
         A good lead is typically from a tech, e-commerce, or customer service-focused company.
         They are usually in decision-making roles (e.g., Manager, Director, CEO, Founder).
         Their goals should align with what a chatbot can solve (e.g., "improve customer support", "generate more leads", "reduce support costs").
+        Someone interested in the 'Enterprise' or 'Pro' plan is generally a higher quality lead.
         
         A bad lead might be a student, someone looking for a job, or someone with goals unrelated to chatbots (e.g., "learn to code").
 
@@ -133,11 +168,30 @@ const PreQualModal: React.FC<PreQualModalProps> = ({ isOpen, onClose, onQualifie
             </p>
           </div>
           <form onSubmit={handleSubmit} className="mt-8 space-y-4">
-            <InputField name="name" placeholder="Full Name" value={formData.name} onChange={handleChange} />
-            <InputField name="email" type="email" placeholder="Work Email" value={formData.email} onChange={handleChange} />
-            <InputField name="company" placeholder="Company Name" value={formData.company} onChange={handleChange} />
-            <InputField name="role" placeholder="Your Role (e.g., Marketing Manager)" value={formData.role} onChange={handleChange} />
-            <TextAreaField name="goal" placeholder="What's your primary goal with a chatbot?" value={formData.goal} onChange={handleChange} />
+            <div>
+                <InputField name="name" placeholder="Full Name" value={formData.name} onChange={handleChange} />
+            </div>
+            <div>
+                <InputField name="email" type="email" placeholder="Work Email" value={formData.email} onChange={handleChange} hasError={!!formErrors.email} aria-describedby="email-error" />
+                {formErrors.email && <p id="email-error" className="mt-1 text-sm text-red-400">{formErrors.email}</p>}
+            </div>
+            <div>
+                <InputField name="company" placeholder="Company Name" value={formData.company} onChange={handleChange} />
+            </div>
+            <div>
+                <InputField name="role" placeholder="Your Role (e.g., Marketing Manager)" value={formData.role} onChange={handleChange} />
+            </div>
+            <div>
+                <SelectField name="plan" value={formData.plan} onChange={handleChange}>
+                    <option value="Not Specified" disabled>Select a Plan...</option>
+                    <option value="Starter">Starter</option>
+                    <option value="Pro">Pro</option>
+                    <option value="Enterprise">Enterprise</option>
+                </SelectField>
+            </div>
+            <div>
+                <TextAreaField name="goal" placeholder="What's your primary goal with a chatbot?" value={formData.goal} onChange={handleChange} />
+            </div>
             
             <button
               type="submit"
@@ -154,20 +208,30 @@ const PreQualModal: React.FC<PreQualModalProps> = ({ isOpen, onClose, onQualifie
   );
 };
 
-const InputField: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = (props) => (
+const InputField: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { hasError?: boolean }> = ({ hasError, ...props }) => (
   <input
     {...props}
     required
-    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f028fe] transition-all"
+    className={`w-full px-4 py-3 bg-gray-800 border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all ${hasError ? 'border-red-500 focus:ring-red-500' : 'border-gray-700 focus:ring-[#f028fe]'}`}
   />
 );
 
-const TextAreaField: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement>> = (props) => (
+const SelectField: React.FC<React.SelectHTMLAttributes<HTMLSelectElement> & { hasError?: boolean }> = ({ hasError, ...props }) => (
+    <select
+      {...props}
+      required
+      className={`w-full px-4 py-3 bg-gray-800 border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all ${hasError ? 'border-red-500 focus:ring-red-500' : 'border-gray-700 focus:ring-[#f028fe]'}`}
+    >
+      {props.children}
+    </select>
+);
+
+const TextAreaField: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement> & { hasError?: boolean }> = ({ hasError, ...props }) => (
   <textarea
     {...props}
     required
     rows={3}
-    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#f028fe] transition-all resize-none"
+    className={`w-full px-4 py-3 bg-gray-800 border rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all resize-none ${hasError ? 'border-red-500 focus:ring-red-500' : 'border-gray-700 focus:ring-[#f028fe]'}`}
   />
 );
 

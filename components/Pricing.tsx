@@ -44,7 +44,7 @@ const plans = [
   },
 ];
 
-const Pricing: React.FC<{ onBookDemoClick: () => void }> = ({ onBookDemoClick }) => {
+const Pricing: React.FC<{ onPlanSelect: (planName: string) => void }> = ({ onPlanSelect }) => {
   return (
     <section id="pricing" className="bg-black snap-start min-h-screen flex items-center justify-center">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -93,7 +93,7 @@ const Pricing: React.FC<{ onBookDemoClick: () => void }> = ({ onBookDemoClick })
                 ))}
               </ul>
               <button
-                onClick={plan.name === 'Enterprise' ? onBookDemoClick : undefined}
+                onClick={() => onPlanSelect(plan.name)}
                 className={`w-full mt-10 py-3 font-semibold rounded-lg transition-all duration-300 ${plan.popular ? 'bg-gradient-to-r from-[#f028fe] to-[#ba0bc6] text-white hover:shadow-lg hover:shadow-[#f028fe]/50' : 'bg-gray-800 text-white hover:bg-gray-700'}`}
               >
                 {plan.cta}
